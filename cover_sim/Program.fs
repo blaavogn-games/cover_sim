@@ -4,8 +4,8 @@ let weapons = 9
 let rounds = 5 
 let players = 3 //Cooperating players
 let simulations = 100000
-let singleWeaponDraw = 2
-let singlePersonDraw = 3
+let singleWeaponDraw = 3
+let singlePersonDraw = 4
 
 type info =
     | S of int
@@ -32,9 +32,8 @@ let generateDeck n m ci singles =
                         ()
                     else
                         yield D(i, j)
-            for i in n .. m do
+            for i in 1 .. m do
                 for j in 1 .. singles do
-                    yield S(i)
                     yield S(i)
         } |> Seq.toArray
     
