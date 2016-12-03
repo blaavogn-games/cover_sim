@@ -1,4 +1,8 @@
-﻿//Util functions
+﻿type info =
+    | S of int
+    | D of int * int
+
+//Util functions
 let rand = new System.Random ((int) (System.Diagnostics.Stopwatch.GetTimestamp ()))
 
 let swap (a: _[]) x y =
@@ -14,7 +18,11 @@ let generateDeck n m =
     seq {
             for i in n .. m do //id 1 is always murder/murderWeapon
                 for j in i + 1 .. m do
-                    yield (i, j)
+                    yield D(i, j)
+            for i in n .. m do
+                for j in 1..5 do
+                    yield S(i)
+                    yield S(i)
         } |> Seq.toArray
     
 
@@ -45,17 +53,20 @@ let simulateGame persons weapons rounds players =
     let count (count: int array) arr =
         //printfn "pl"
         let (c: int array) = Array.zeroCreate count.Length
-        Array.iter (fun (e1, e2) -> 
-                        c.[e1] <- c.[e1] + 1; 
-                        c.[e2] <- c.[e2] + 1) arr 
+        Array.iter (fun (e) ->
+                        match e with
+                        | S(e1)    -> c.[e1] <- c.[e1] + 1
+                        | D(e1,e2) -> c.[e1] <- c.[e1] + 1; 
+                                      c.[e2] <- c.[e2] + 1
+                    ) arr 
         Array.iteri (fun i e -> if e > 0 then count.[i] <- count.[i]+ 1) c
 
     Array.iter (count personHits) personDraws
     //printfn "Weapons"
     Array.iter (count weaponHits) weaponDraws
 
-    let p = Array.fold (fun acc e -> if e = 0 then acc + 1 else acc) 0 personHits
-    let w = Array.fold (fun acc e -> if e = 0 then acc + 1 else acc) 0 weaponHits
+    let p = Array.fold (fun acc e -> if e < 2 then acc + 1 else acc) 0 personHits
+    let w = Array.fold (fun acc e -> if e < 2 then acc + 1 else acc) 0 weaponHits
 
     (p,w)
 
@@ -75,7 +86,7 @@ let main argv =
         personsLeft.[p] <- personsLeft.[p] + 1
         weaponsLeft.[w] <- weaponsLeft.[w] + 1
 
-    printfn "No CI-hints, only double hints"
+    printfn "No CI-hints, only single and double hints"
     printfn "Cooperating players: %d" players
     printfn "Rounds: %d" rounds
     printfn "Weapons: %d" weapons
