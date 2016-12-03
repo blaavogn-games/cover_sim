@@ -1,4 +1,13 @@
-﻿type info =
+﻿//Simulation vars
+let persons = 10
+let weapons = 9
+let rounds = 5 
+let players = 3 //Cooperating players
+let simulations = 100000
+let singleWeaponDraw = 2
+let singlePersonDraw = 3
+
+type info =
     | S of int
     | D of int * int
 
@@ -14,21 +23,25 @@ let shuffle a =
     Array.iteri (fun i _ -> swap a i (rand.Next(i, Array.length a))) a
 
 //Game
-let generateDeck n m =
+let generateDeck n m ci singles =
+    let ciCount = Array.zeroCreate ci
     seq {
-            for i in n .. m do //id 1 is always murder/murderWeapon
+            for i in 1 .. m do //id 0 is always murder/murderWeapon
                 for j in i + 1 .. m do
-                    yield D(i, j)
+                    if (i <= ci && ciCount.[i - 1] > 3) || (j <= ci && ciCount.[j - 1] > 3) then 
+                        ()
+                    else
+                        yield D(i, j)
             for i in n .. m do
-                for j in 1..5 do
+                for j in 1 .. singles do
                     yield S(i)
                     yield S(i)
         } |> Seq.toArray
     
 
-let simulateGame persons weapons rounds players =
-    let personDeck = generateDeck 4 (persons - 1)
-    let weaponDeck = generateDeck 1 (weapons - 1)
+let simulateGame _ =
+    let personDeck = generateDeck 4 (persons - 1) 3 singlePersonDraw
+    let weaponDeck = generateDeck 1 (weapons - 1) 0 singleWeaponDraw
     
     shuffle personDeck
     shuffle weaponDeck
@@ -71,26 +84,22 @@ let simulateGame persons weapons rounds players =
     (p,w)
 
 [<EntryPoint>]
-let main argv = 
-    let persons = 10
-    let weapons = 9
-    let rounds = 5 
-    let players = 3 //Cooperating players
-    let simulations = 100000
-
+let main argv =     
     let personsLeft = Array.zeroCreate persons
     let weaponsLeft = Array.zeroCreate persons
 
     for _ in 1 .. simulations do
-        let (p,w) = simulateGame persons weapons rounds players
+        let (p,w) = simulateGame ()
         personsLeft.[p] <- personsLeft.[p] + 1
         weaponsLeft.[w] <- weaponsLeft.[w] + 1
 
-    printfn "No CI-hints, only single and double hints"
+    printfn "No CI-hints, single and double hints"
     printfn "Cooperating players: %d" players
     printfn "Rounds: %d" rounds
     printfn "Weapons: %d" weapons
     printfn "Suspects: %d" persons
+    printfn "Single weapons: %d " singleWeaponDraw
+    printfn "Single persons: %d " singlePersonDraw
     printfn "Simulations: %d \n" simulations
     
     printfn "  Info |  Suspe | Weapon"
